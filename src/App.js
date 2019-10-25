@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
-import { Input, Select } from 'antd';
+import { Button, Form, Input, Modal, Select } from 'antd';
 import produce from 'immer';
 
 import { makeDealManagement, makeServer } from './dealManagement.js';
@@ -25,6 +25,7 @@ let dealManagement = makeDealManagement(server);
 
 function App() {
   let [dealBehavior, setDealBehavior] = useState(dealManagement);
+  let [isDealModalVisible, setIsDealModalVisible] = useState(false);
 
   useEffect(() => {
     execute(draftBehavior => draftBehavior.viewDeals());
@@ -57,38 +58,57 @@ function App() {
     execute(draftBehavior => { draftBehavior.dealForm.size = size });
   }
 
-  function newDeal() {
-    execute(draftBehavior => { draftBehavior.makeNewDeal() });
+  function showNewDealForm() {
+    setIsDealModalVisible(true);
+    execute(draftBehavior => { 
+      draftBehavior.makeNewDeal() 
+    });
+  }
+
+  function hideForm() {
+    setIsDealModalVisible(false);
   }
 
   function saveDeal() {
-    execute(draftBehavior => { 
-      draftBehavior.save()
-      draftBehavior.makeNewDeal();
-    });
+    setIsDealModalVisible(false);
+    execute(draftBehavior => { draftBehavior.save() });
   }
 
   function handleAsset(asset) {
     execute(draftBehavior => { draftBehavior.dealForm.assets.push(asset) });
   }
 
-  console.log(dealBehavior);
-
   return (
     <div className="App">
-      <button onClick={newDeal}>
-        New Deal
-      </button>
-      <button onClick={saveDeal}>
-        Save Deal
-      </button>
+      <Button type="primary" onClick={showNewDealForm}>
+        Add deal
+      </Button>
 
-      <Input placeholder="size" onChange={handleSize}/>
-      
-      <Select placeholder="Select Asset" style={{ width: 200 }} onChange={handleAsset}>
-        <Option value={assets[0].name}>{assets[0].name}</Option>
-        <Option value={assets[1].name}>{assets[1].name}</Option>        
-      </Select>
+      <Modal 
+        visible={isDealModalVisible} 
+        onCancel={hideForm} 
+        okText={"Save"} 
+        onOk={saveDeal}>
+
+        <Form layout="vertical">
+
+          <Form.Item label="Add deal">
+          </Form.Item>
+
+          <Form.Item>
+            <Input placeholder="size" onChange={handleSize}/>
+          </Form.Item>
+        
+          <Form.Item>
+            <Select placeholder="Select Asset" style={{ width: 200 }} onChange={handleAsset}>
+              <Option value={assets[0].name}>{assets[0].name}</Option>
+              <Option value={assets[1].name}>{assets[1].name}</Option>        
+            </Select>
+          </Form.Item>
+
+        </Form>
+
+      </Modal>
 
       { dealElements() }
       { dealBehavior.errors.length > 0 ? dealBehavior.errors[0] : null }

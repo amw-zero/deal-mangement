@@ -43,4 +43,14 @@ describe('creating deals', () => {
 
     expect(dealManagement.errors).toStrictEqual(["Deals must be tied to at least one asset"]);
   });
+
+  it('saves a deal after searching for assets', () => {
+    let { dealManagement, mocks } = makeTestDealManagement();
+
+    dealManagement.dealForm.size = 5;
+    dealManagement.dealForm.assets.push({ name: 'Asset 1' });
+
+    dealManagement.searchForAssets('Suite 7');
+    dealManagement.save();
+  });
 });
