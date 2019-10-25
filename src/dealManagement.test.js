@@ -30,3 +30,12 @@ it('saves deals', () => {
   expect(mocks.save).toHaveBeenCalledWith({ size: 5 });
   expect(dealManagement.deals).toStrictEqual([{ size: 5 }])
 });
+
+it('shows error when deal is invalid because it has no asset' , () => {
+  let { dealManagement, mocks } = makeTestDealManagement();
+
+  dealManagement.dealForm.size = 5;
+  dealManagement.save();
+
+//  expect(dealManagement.)
+});
