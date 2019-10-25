@@ -15,7 +15,6 @@ let deals = [
 
 let server = makeServer(deals, () => { })
 let dealManagement = makeDealManagement(server);
-dealManagement.viewDeals();
 
 function App() {
   let [dealBehavior, setDealBehavior] = useState(dealManagement);
@@ -48,10 +47,17 @@ function App() {
     });
   }
 
+  function fetchDeals() {
+    execute(draftBehavior => draftBehavior.viewDeals());
+  }
+
   return (
     <div className="App">
+      <button onClick={fetchDeals}>
+        Load Deals
+      </button>
       <button onClick={newDeal}>
-        Add Deal
+        New Deal
       </button>
       <button onClick={saveDeal}>
         Save Deal
