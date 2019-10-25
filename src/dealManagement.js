@@ -1,10 +1,15 @@
 let makeDealManagement = (server) => {
   return {
-    size: 0,
+    dealForm: {},
     deals: [],
     server,
+    makeNewDeal() {
+      this.dealForm = {};
+    },
     save() {
-      server.save({ size: this.size });
+      let newDeal = Object.assign({}, this.dealForm);
+      this.deals.push(newDeal);
+      server.save(newDeal);
     },
     viewDeals() {
       this.deals = server.viewDeals()

@@ -23,8 +23,10 @@ it('views deals', () => {
 it('saves deals', () => {
   let { dealManagement, mocks } = makeTestDealManagement();
 
-  dealManagement.size = 5;
+  dealManagement.makeNewDeal();
+  dealManagement.dealForm.size = 5;
   dealManagement.save();
 
   expect(mocks.save).toHaveBeenCalledWith({ size: 5 });
+  expect(dealManagement.deals).toStrictEqual([{ size: 5 }])
 });
