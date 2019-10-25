@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
 import { Input } from 'antd';
@@ -19,6 +19,10 @@ let dealManagement = makeDealManagement(server);
 function App() {
   let [dealBehavior, setDealBehavior] = useState(dealManagement);
 
+  useEffect(() => {
+    execute(draftBehavior => draftBehavior.viewDeals());
+  });
+
   function execute(command) {
     setDealBehavior(produce(dealBehavior, command));
   }
@@ -33,7 +37,7 @@ function App() {
 
   function handleSize(event) {
     let size = event.target.value;
-    execute(draftBehavior => { draftBehavior.dealForm.size = size; });
+    execute(draftBehavior => { draftBehavior.dealForm.size = size });
   }
 
   function newDeal() {
@@ -47,15 +51,8 @@ function App() {
     });
   }
 
-  function fetchDeals() {
-    execute(draftBehavior => draftBehavior.viewDeals());
-  }
-
   return (
     <div className="App">
-      <button onClick={fetchDeals}>
-        Load Deals
-      </button>
       <button onClick={newDeal}>
         New Deal
       </button>
