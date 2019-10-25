@@ -1,15 +1,35 @@
+function DealForm() {
+  return {
+    assets: []
+  };
+}
+
 let makeDealManagement = (server) => {
   return {
-    dealForm: {},
+    dealForm: new DealForm(),
     deals: [],
+    errors: [],
     server,
     makeNewDeal() {
-      this.dealForm = {};
+      this.dealForm = new DealForm();
     },
     save() {
-      let newDeal = Object.assign({}, this.dealForm);
+      let invalidExplanation = this.validate();
+      if (invalidExplanation) {
+        this.errors.push(invalidExplanation);
+        return;
+      }
+
+      let newDeal = Object.assign({}, this.dealForm) 
       this.deals.push(newDeal);
       server.save(newDeal);
+    },
+    validate() {
+      if (this.dealForm.assets.length === 0) {
+        return "Deals must be tied to at least one asset"
+      }
+
+      return null;
     },
     viewDeals() {
       this.deals = server.viewDeals()

@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
-import { Input } from 'antd';
+import { Input, Select } from 'antd';
 import produce from 'immer';
 
 import { makeDealManagement, makeServer } from './dealManagement.js';
+
+const { Option } = Select;
 
 let deals = [
  { size: 100 },
  { size: 200 },
  { size: 300 },
  { size: 400 }
+];
+
+let assets = [
+ { name: 'Asset 1' },
+ { name: 'Asset 2' }
 ];
 
 let server = makeServer(deals, () => { })
@@ -21,18 +28,28 @@ function App() {
 
   useEffect(() => {
     execute(draftBehavior => draftBehavior.viewDeals());
-  });
+  }, []);
 
   function execute(command) {
-    setDealBehavior(produce(dealBehavior, command));
+    let nextState = produce(dealBehavior, command);
+    setDealBehavior(nextState);
   }
 
-  function dealTags() {
-    return dealBehavior.deals.map(dealTag);
+  function dealElements() {
+    return dealBehavior.deals.map(dealElement);
   }
 
-  function dealTag(deal) {
-    return <p key={deal.size}>{deal.size}</p>;
+  function dealElement(deal, i) {
+    return <div key={i}>
+      <p>{deal.size}, assets: {assetString(deal.assets)}</p>
+    </div>
+  }
+
+  function assetString(assets) {
+    if (!assets) {
+      return "none";
+    }
+    return assets.join(", ")
   }
 
   function handleSize(event) {
@@ -41,7 +58,7 @@ function App() {
   }
 
   function newDeal() {
-    execute(draftBehavior => draftBehavior.makeNewDeal());
+    execute(draftBehavior => { draftBehavior.makeNewDeal() });
   }
 
   function saveDeal() {
@@ -50,6 +67,12 @@ function App() {
       draftBehavior.makeNewDeal();
     });
   }
+
+  function handleAsset(asset) {
+    execute(draftBehavior => { draftBehavior.dealForm.assets.push(asset) });
+  }
+
+  console.log(dealBehavior);
 
   return (
     <div className="App">
@@ -61,8 +84,14 @@ function App() {
       </button>
 
       <Input placeholder="size" onChange={handleSize}/>
+      
+      <Select placeholder="Select Asset" style={{ width: 200 }} onChange={handleAsset}>
+        <Option value={assets[0].name}>{assets[0].name}</Option>
+        <Option value={assets[1].name}>{assets[1].name}</Option>        
+      </Select>
 
-      { dealTags() }
+      { dealElements() }
+      { dealBehavior.errors.length > 0 ? dealBehavior.errors[0] : null }
     </div>
   );
 }
