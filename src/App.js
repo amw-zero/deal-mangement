@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
 import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Select } from 'antd';
@@ -25,12 +25,15 @@ let assets = [
 let server = makeServer(deals, () => { })
 let dealManagement = makeDealManagement(server);
 
+const StateContext = createContext();
+
+
 function Deal(props) {
   function assetString(assets) {
     if (!assets) {
       return "none";
     }
-    return assets.join(", ")
+    return assets.map(a => a.name).join(", ")
   }
 
   return <List.Item>
@@ -58,6 +61,16 @@ function DealList(props) {
   />
 }
 
+function StateButton(props) {
+  let [_, updateState] = useContext(StateContext);
+
+  function addDeal() {
+    updateState(stateDraft => { stateDraft.dealManagement.deals.push({ size: 15, tenant: 'Context Tenant', assets: [{ name: 'Context Asset' }]}) });
+  }
+
+  return <Button onClick={addDeal} />
+}
+
 function App() {
   let [state, setState] = useState({ 
     dealManagement, 
@@ -65,13 +78,18 @@ function App() {
     isAssetSearchLoading: false
   });
 
-  useEffect(() => {
-    updateState(draftState => draftState.dealManagement.viewDeals());
-  }, []);
-
   function updateState(command) {
     setState(produce(state, command));
-  }  
+  } 
+
+  let appState = [
+    state,
+    updateState
+  ];
+
+  useEffect(() => {
+    updateState(draftState => draftState.dealManagement.viewDeals());
+  }, []);  
 
   function handleSize(event) {
     let size = event.target.value;
@@ -100,7 +118,7 @@ function App() {
   }
 
   function handleAsset(asset) {
-    updateState(draftState => { draftState.dealManagement.dealForm.assets.push(asset) });
+    updateState(draftState => { draftState.dealManagement.dealForm.assets.push({ name: asset.name }) });
   }
 
   function handleTenant(event) {
@@ -118,57 +136,60 @@ function App() {
   }
 
   return (
-    <Layout>
-      <Header style={{ position: 'fixed', zIndex: 1, width: '100%' }}>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          defaultSelectedKeys={['0']}
-          style={{ lineHeight: '64px' }}
-        >
-          <Menu.Item key="0">Deal Management</Menu.Item>          
-        </Menu>
-      </Header>
-      <Content style={{ padding: '0 50px', marginTop: 64 }}>        
-        <Modal 
-          visible={state.isDealModalVisible} 
-          onCancel={hideForm} 
-          okText={"Save"} 
-          onOk={saveDeal}>
+    <StateContext.Provider value={appState}>
+      <Layout>
+        <Header style={{ position: 'fixed', zIndex: 1, width: '100%' }}>
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            defaultSelectedKeys={['0']}
+            style={{ lineHeight: '64px' }}
+          >
+            <Menu.Item key="0">Deal Management</Menu.Item>          
+          </Menu>
+        </Header>
+        <Content style={{ padding: '0 50px', marginTop: 64 }}>        
+          <Modal 
+            visible={state.isDealModalVisible} 
+            onCancel={hideForm} 
+            okText={"Save"} 
+            onOk={saveDeal}>
 
-            <Form layout="vertical">
+              <Form layout="vertical">
 
-              <Form.Item label="Add deal" />
+                <Form.Item label="Add deal" />
 
-              <Form.Item>
-                <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
-              </Form.Item>
+                <Form.Item>
+                  <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
+                </Form.Item>
 
-              <Form.Item>
-                <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
-              </Form.Item>
+                <Form.Item>
+                  <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
+                </Form.Item>
 
-              <Form.Item hasFeedback validateStatus={assetSearchValidateStatus()}>
-                <Search placeholder="Search for assets" onChange={searchForAssets} />
-              </Form.Item>
-            
-              <Form.Item required={true}>
-                <Select placeholder="Select Asset" style={{ width: 200 }} value={state.dealManagement.dealForm.assets[0]} onChange={handleAsset}>
-                  <Option value={assets[0].name}>{assets[0].name}</Option>
-                  <Option value={assets[1].name}>{assets[1].name}</Option>        
-                </Select>
-              </Form.Item>
+                <Form.Item hasFeedback validateStatus={assetSearchValidateStatus()}>
+                  <Search placeholder="Search for assets" onChange={searchForAssets} />
+                </Form.Item>
+              
+                <Form.Item required={true}>
+                  <Select placeholder="Select Asset" style={{ width: 200 }} value={state.dealManagement.dealForm.assets[0]} onChange={handleAsset}>
+                    <Option value={assets[0].name}>{assets[0].name}</Option>
+                    <Option value={assets[1].name}>{assets[1].name}</Option>        
+                  </Select>
+                </Form.Item>
 
-              { state.dealManagement.errors.length > 0 ? <Alert message={state.dealManagement.errors[0]} type="error" /> : null }
-          </Form>
+                { state.dealManagement.errors.length > 0 ? <Alert message={state.dealManagement.errors[0]} type="error" /> : null }
+            </Form>
 
-        </Modal>
-        <div style={ { margin: 24, background: '#fff' } }>          
-          <DealList deals={state.dealManagement.deals} showNewDealForm={showNewDealForm} />
-        </div>
-      </Content>
-      <Footer style={{ textAlign: 'center' }}>Deal Manager ©2019 Created by amw-zero</Footer>
-    </Layout>
+          </Modal>
+          <StateButton />
+          <div style={ { margin: 24, background: '#fff' } }>          
+            <DealList deals={state.dealManagement.deals} showNewDealForm={showNewDealForm} />
+          </div>
+        </Content>
+        <Footer style={{ textAlign: 'center' }}>Deal Manager ©2019 Created by amw-zero</Footer>
+      </Layout>
+    </StateContext.Provider>
   );
 }
 
