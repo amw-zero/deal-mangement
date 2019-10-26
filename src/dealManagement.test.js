@@ -44,13 +44,27 @@ describe('creating deals', () => {
     expect(dealManagement.errors).toStrictEqual(["Deals must be tied to at least one asset"]);
   });
 
-  it('saves a deal after searching for assets', () => {
+  // it('saves a deal after searching for assets', () => {
+  //   let { dealManagement, mocks } = makeTestDealManagement();
+
+  //   dealManagement.dealForm.size = 5;
+  //   dealManagement.dealForm.assets.push({ name: 'Asset 1' });
+
+  //   dealManagement.searchForAssets('Suite 7');
+  //   dealManagement.save();
+  // });
+});
+
+describe('view state', () => {
+  it('resets the form object when requested', () => {
     let { dealManagement, mocks } = makeTestDealManagement();
 
     dealManagement.dealForm.size = 5;
-    dealManagement.dealForm.assets.push({ name: 'Asset 1' });
+    dealManagement.errors = ["Error"];
 
-    dealManagement.searchForAssets('Suite 7');
-    dealManagement.save();
+    dealManagement.makeNewDeal();
+
+    expect(dealManagement.dealForm).toStrictEqual({ assets: [] });
+    expect(dealManagement.errors).toStrictEqual([]);
   });
 });

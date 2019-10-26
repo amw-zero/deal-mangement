@@ -12,6 +12,7 @@ let makeDealManagement = (server) => {
     server,
     makeNewDeal() {
       this.dealForm = new DealForm();
+      this.errors = [];
     },
     save() {
       let invalidExplanation = this.validate();
