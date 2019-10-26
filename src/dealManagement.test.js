@@ -60,15 +60,15 @@ describe('creating deals', () => {
     expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }]}])
   });
 
-  // it('saves a deal after searching for assets', () => {
-  //   let { dealManagement, mocks } = makeTestDealManagement();
+  it('saves a deal after searching for assets', () => {
+    let { dealManagement, mocks } = makeTestDealManagement();
 
-  //   dealManagement.dealForm.size = 5;
-  //   dealManagement.dealForm.assets.push({ name: 'Asset 1' });
+    dealManagement.dealForm.size = 5;
+    dealManagement.dealForm.assets.push({ name: 'Asset 1' });
 
-  //   dealManagement.searchForAssets('Suite 7');
-  //   dealManagement.save();
-  // });
+    dealManagement.searchForAssets('Suite 7');
+    dealManagement.save();
+  });
 });
 
 describe('view state', () => {

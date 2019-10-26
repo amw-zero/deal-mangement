@@ -8,6 +8,7 @@ import { makeDealManagement, makeServer } from './dealManagement.js';
 
 const { Option } = Select;
 const { Header, Content, Footer } = Layout;
+const { Search } = Input
 
 let deals = [
  { tenant: 'JCPenny', size: 100 },
@@ -58,15 +59,18 @@ function DealList(props) {
 }
 
 function App() {
-  let [state, setState] = useState({ dealManagement, isDealModalVisible: false });
+  let [state, setState] = useState({ 
+    dealManagement, 
+    isDealModalVisible: false, 
+    isAssetSearchLoading: false
+  });
 
   useEffect(() => {
     updateState(draftState => draftState.dealManagement.viewDeals());
   }, []);
 
   function updateState(command) {
-    let nextState = produce(state, command);
-    setState(nextState);
+    setState(produce(state, command));
   }  
 
   function handleSize(event) {
@@ -104,6 +108,15 @@ function App() {
     updateState(draftState => { draftState.dealManagement.dealForm.tenant = tenant });
   }
 
+  function searchForAssets(searchText) {
+    updateState(draftState => { draftState.isAssetSearchLoading = true });
+    setTimeout(() => updateState(draftState => { draftState.isAssetSearchLoading= false }), 1000);
+  }
+
+  function assetSearchValidateStatus() {
+    return state.isAssetSearchLoading ? "validating" : "";
+  }
+
   return (
     <Layout>
       <Header style={{ position: 'fixed', zIndex: 1, width: '100%' }}>
@@ -134,6 +147,10 @@ function App() {
               <Form.Item>
                 <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
               </Form.Item>
+
+              <Form.Item hasFeedback validateStatus={assetSearchValidateStatus()}>
+                <Search placeholder="Search for assets" onChange={searchForAssets} />
+              </Form.Item>
             
               <Form.Item required={true}>
                 <Select placeholder="Select Asset" style={{ width: 200 }} value={state.dealManagement.dealForm.assets[0]} onChange={handleAsset}>
@@ -146,7 +163,7 @@ function App() {
           </Form>
 
         </Modal>
-        <div style={ { margin: 24, background: '#fff' } }>
+        <div style={ { margin: 24, background: '#fff' } }>          
           <DealList deals={state.dealManagement.deals} showNewDealForm={showNewDealForm} />
         </div>
       </Content>
