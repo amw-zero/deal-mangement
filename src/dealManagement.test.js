@@ -23,16 +23,17 @@ describe('viewing deals', () => {
 });
 
 describe('creating deals', () => {
-  it('saves a deal when assets are selected', () => {
+  it('saves a deal when all fields are specified', () => {
     let { dealManagement, mocks } = makeTestDealManagement();
 
     dealManagement.makeNewDeal();
     dealManagement.dealForm.size = 5;
     dealManagement.dealForm.assets.push({ name: 'Asset 1' });
+    dealManagement.dealForm.tenant = 'Test Tenant';
     dealManagement.save();
 
-    expect(mocks.save).toHaveBeenCalledWith({ size: 5, assets: [{ name: 'Asset 1'}] });
-    expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }] }]);
+    expect(mocks.save).toHaveBeenCalledWith({ size: 5, assets: [{ name: 'Asset 1'}], tenant: 'Test Tenant' });
+    expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }], tenant: 'Test Tenant' }]);
   });
 
   it('communicates invalidity when the deal has no asset' , () => {
@@ -42,6 +43,21 @@ describe('creating deals', () => {
     dealManagement.save();
 
     expect(dealManagement.errors).toStrictEqual(["Deals must be tied to at least one asset"]);
+  });
+
+  it('is able to save after reporting invalidity', () => {
+    let { dealManagement, mocks } = makeTestDealManagement();
+
+    dealManagement.dealForm.size = 5;
+    dealManagement.save();
+
+    expect(dealManagement.errors).toStrictEqual(["Deals must be tied to at least one asset"]);
+
+    dealManagement.dealForm.assets.push({ name: 'Asset 1'});
+    dealManagement.save();
+
+    expect(dealManagement.errors).toStrictEqual([]);
+    expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }]}])
   });
 
   // it('saves a deal after searching for assets', () => {

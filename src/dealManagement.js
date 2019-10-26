@@ -9,6 +9,7 @@ let makeDealManagement = (server) => {
     dealForm: new DealForm(),
     deals: [],
     errors: [],
+    tenant: null,
     server,
     makeNewDeal() {
       this.dealForm = new DealForm();
@@ -19,6 +20,8 @@ let makeDealManagement = (server) => {
       if (invalidExplanation) {
         this.errors.push(invalidExplanation);
         return;
+      } else {
+        this.errors = [];
       }
 
       let newDeal = Object.assign({}, this.dealForm) 
