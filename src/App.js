@@ -128,15 +128,15 @@ function App() {
               <Form.Item label="Add deal" />
 
               <Form.Item>
-                <Input placeholder="Size" onChange={handleSize}/>
+                <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
               </Form.Item>
 
               <Form.Item>
-                <Input placeholder="Tenant" onChange={handleTenant}/>              
+                <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
               </Form.Item>
             
               <Form.Item required={true}>
-                <Select placeholder="Select Asset" style={{ width: 200 }} onChange={handleAsset}>
+                <Select placeholder="Select Asset" style={{ width: 200 }} value={state.dealManagement.dealForm.assets[0]} onChange={handleAsset}>
                   <Option value={assets[0].name}>{assets[0].name}</Option>
                   <Option value={assets[1].name}>{assets[1].name}</Option>        
                 </Select>
