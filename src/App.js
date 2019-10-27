@@ -11,18 +11,22 @@ const { Search } = Input;
 const { Step } = Steps;
 
 let deals = [
- { tenant: 'JCPenny', size: 100 },
- { tenant: 'Starbucks', size: 200 },
- { tenant: 'H&M', size: 300 },
- { tenant: 'Blue Bottle', size: 400 }
+  { tenant: 'JCPenny', size: 100 },
+  { tenant: 'Starbucks', size: 200 },
+  { tenant: 'H&M', size: 300 },
+  { tenant: 'Blue Bottle', size: 400 }
 ];
 
 let assets = [
- { name: 'Asset 1' },
- { name: 'Asset 2' }
+  { name: 'Asset 1' },
+  { name: 'Asset 2' }
 ];
 
-let server = makeServer(deals, () => { })
+let searchedAssets = [
+  { name: 'Asset 1' }
+];
+
+let server = makeServer(deals, () => { }, async (_) => searchedAssets);
 let dealManagement = makeDealManagement(server);
 
 const StateContext = createContext();
@@ -88,6 +92,25 @@ function DealForm(props) {
   ];
 
   function SelectAssetsStep() {
+    function searchForAssets(searchText) {
+      updateState(draftState => { draftState.isAssetSearchLoading = true });
+      setTimeout(async () => {
+        let onDone = await state.dealManagement.searchForAssets(searchText);
+        updateState(draftState => {
+          draftState.isAssetSearchLoading= false;
+          onDone(draftState.dealManagement);
+        });
+      }, 1000);
+    }
+
+    function assetsDataSource() {
+      if (state.dealManagement.assetSearchResults.length > 0) {
+        return state.dealManagement.assetSearchResults;
+      }
+
+      return assets;
+    }
+
     return <Form layout="vertical">
       <h3>Selected assets</h3>
       <Form.Item>
@@ -101,14 +124,14 @@ function DealForm(props) {
         />
       </Form.Item>
       <Form.Item hasFeedback validateStatus={assetSearchValidateStatus()}>
-        <Search placeholder="Search for assets" onChange={searchForAssets} />
+        <Search placeholder="Search for assets" onSearch={searchForAssets} />
       </Form.Item>
     
       <Form.Item>
         <List
           itemLayout="vertical"
           bordered
-          dataSource={assets}
+          dataSource={assetsDataSource()}
           renderItem={ asset => (
             <List.Item style={{ cursor: 'pointer '}} onClick={() => handleAsset(asset)}>{asset.name}</List.Item>
           )}
@@ -178,16 +201,11 @@ function DealForm(props) {
 
   function hideForm() {
     updateState(draftState => { 
-      draftState.dealManagement.makeNewDeal();
       draftState.isDealModalVisible = false;
     });
     setCurrentStep(0);
-  }
-
-  function searchForAssets(searchText) {
-    updateState(draftState => { draftState.isAssetSearchLoading = true });
-    setTimeout(() => updateState(draftState => { draftState.isAssetSearchLoading= false }), 1000);
-  }
+    setSelectedAssets([]);
+  }  
 
   function assetSearchValidateStatus() {
     return state.isAssetSearchLoading ? "validating" : "";
@@ -209,6 +227,7 @@ function DealForm(props) {
 
   function Footer() {
     return <div>
+      <Button onClick={hideForm}>Cancel</Button>
       { currentStep > 0 && <Button onClick={prev}>Previous</Button> }
       { currentStep < steps.length - 1 && <Button type="primary" disabled={!nextButtonEnabled()} onClick={next} >Next</Button> }
       { currentStep === steps.length - 1 && <Button type="primary" onClick={saveDeal}>Save</Button> }
@@ -240,7 +259,8 @@ function App() {
   });
 
   function updateState(updateFunc) {
-    setState(produce(state, updateFunc));
+    let nextState = produce(state, updateFunc);
+    setState(nextState);
   }
 
   let appState = [
@@ -254,7 +274,7 @@ function App() {
 
   function showNewDealForm() {
     updateState(draftState => { 
-      draftState.dealManagement.makeNewDeal() ;
+      draftState.dealManagement.resetDealForm() ;
       draftState.isDealModalVisible = true;
     });
   }  

@@ -10,10 +10,12 @@ let makeDealManagement = (server) => {
     deals: [],
     errors: [],
     tenant: null,
+    assetSearchResults: [],
     server,
-    makeNewDeal() {
+    resetDealForm() {
       this.dealForm = new DealForm();
       this.errors = [];
+      this.assetSearchResults = [];
     },
     save() {
       let invalidExplanation = this.validate();
@@ -28,6 +30,12 @@ let makeDealManagement = (server) => {
       this.deals.push(newDeal);
       server.save(newDeal);
     },
+    async searchForAssets(searchText) {
+      let results = await server.viewAssets(searchText);
+
+      return (draft) => draft.assetSearchResults = results;
+    },
+
     validate() {
       if (this.dealForm.assets.length === 0) {
         return "Deals must be tied to at least one asset"
@@ -41,12 +49,13 @@ let makeDealManagement = (server) => {
   };
 };
 
-let makeServer = (dealContext, save) => {
+let makeServer = (dealContext, save, viewAssets) => {
   return {
     viewDeals() {
       return dealContext;
     },
-    save
+    save,
+    viewAssets
   };
 };
 
