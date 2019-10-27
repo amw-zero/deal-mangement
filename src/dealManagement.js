@@ -52,7 +52,7 @@ let makeDealManagement = (server) => {
       return null;
     },
     async viewDeals() {
-      let deals = await server.perform({ path: '/deals', method: "GET" });
+      let deals = await server.perform({ path: '/deals.json', method: "GET" });
       return (draft) => { draft.deals = deals }
     }
   };

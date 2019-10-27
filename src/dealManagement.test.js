@@ -2,13 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { makeDealManagement, makeServer } from './dealManagement.js';
+import { dealResponse } from './responses.js';
 
 function makeTestDealManagement(overrideOpts = {}) {
   let defaultOpts = { dealContext: [], assetSearchResults: [], stubRequests: {} };
   let opts = Object.assign(defaultOpts, overrideOpts);
 
   let httpClient = jest.fn(request => {
-    if (request.path === '/deals' && request.method === 'GET') {
+    if (request.path === '/deals.json' && request.method === 'GET') {
       return opts.dealContext;
     } else if (request.path.includes('/assets')) {
       return opts.assetSearchResults;
@@ -26,11 +27,18 @@ function makeTestDealManagement(overrideOpts = {}) {
 
 describe('viewing deals', () => {
   it('is able to retrieve deal data', async () => {
-    let { dealManagement } = makeTestDealManagement({ dealContext: [{ size: 5 }] });
+    let { dealManagement } = makeTestDealManagement({ dealContext: dealResponse() });
 
-    await dealManagement.viewDeals();
+    let onDone = await dealManagement.viewDeals();
+    onDone(dealManagement);
 
-    expect(dealManagement.deals).toStrictEqual([{ size: 5 }]);
+    expect(dealManagement.deals).toStrictEqual([{
+      size: 5,
+      tenant: 'Test Tenant',
+      assets: [
+        { name: 'Test Asset' }
+      ]
+    }]);
   });
 });
 
