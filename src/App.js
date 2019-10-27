@@ -26,9 +26,10 @@ let searchedAssets = [
   { name: 'Asset 1' }
 ];
 
-function stubHttpClient(request) {
+async function stubHttpClient(request) {
   if (request.path === '/deals' && request.method === 'GET') {
-    return deals;
+    let response = await fetch('/deals.json')
+    return await response.json();
   } else if (request.path.includes('/assets')) {
     return searchedAssets;
   }
