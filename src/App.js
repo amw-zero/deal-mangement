@@ -26,7 +26,19 @@ let searchedAssets = [
   { name: 'Asset 1' }
 ];
 
-let server = makeServer(deals, () => { }, async (_) => searchedAssets);
+function stubHttpClient(request) {
+  console.log("Making http request")
+  console.log(request)
+  if (request.path === '/deals' && request.method === 'GET') {
+    return deals;
+  } else if (request.path.includes('/assets')) {
+    return searchedAssets;
+  }
+
+  return [];  
+}
+
+let server = makeServer(stubHttpClient);
 let dealManagement = makeDealManagement(server);
 
 const StateContext = createContext();
@@ -269,7 +281,11 @@ function App() {
   ];
 
   useEffect(() => {
-    updateState(draftState => draftState.dealManagement.viewDeals());
+    let perform = async () => {
+      let onDone = await state.dealManagement.viewDeals();
+      updateState(draft => onDone(draft.dealManagement));    
+    };
+    perform();
   }, []);
 
   function showNewDealForm() {

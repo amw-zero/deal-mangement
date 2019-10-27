@@ -4,24 +4,31 @@ import App from './App';
 import { makeDealManagement, makeServer } from './dealManagement.js';
 
 function makeTestDealManagement(overrideOpts = {}) {
-  let defaultOpts = { dealContext: [], assetSearchResults: [] };
+  let defaultOpts = { dealContext: [], assetSearchResults: [], stubRequests: {} };
   let opts = Object.assign(defaultOpts, overrideOpts);
 
-  let save = jest.fn();
-  let viewAssets = jest.fn(_ => opts.assetSearchResults);
+  let httpClient = jest.fn(request => {
+    if (request.path === '/deals' && request.method === 'GET') {
+      return opts.dealContext;
+    } else if (request.path.includes('/assets')) {
+      return opts.assetSearchResults;
+    }
 
-  let server = makeServer(opts.dealContext, save, viewAssets);
+    return [];
+  });
+
+  let server = makeServer(httpClient);
   let dealManagement = makeDealManagement(server);
-  let mocks = { save };
+  let mocks = { httpClient };
 
   return { dealManagement, mocks }
 }
 
 describe('viewing deals', () => {
-  it('is able to retrieve deal data', () => {
+  it('is able to retrieve deal data', async () => {
     let { dealManagement } = makeTestDealManagement({ dealContext: [{ size: 5 }] });
 
-    dealManagement.viewDeals();
+    await dealManagement.viewDeals();
 
     expect(dealManagement.deals).toStrictEqual([{ size: 5 }]);
   });
@@ -36,7 +43,11 @@ describe('creating deals', () => {
     dealManagement.dealForm.tenant = 'Test Tenant';
     dealManagement.save();
 
-    expect(mocks.save).toHaveBeenCalledWith({ size: 5, assets: [{ name: 'Asset 1'}], tenant: 'Test Tenant' });
+    expect(mocks.httpClient).toHaveBeenCalledWith({
+      path: '/deals',
+      method: 'POST',
+      params:{ size: 5, assets: [{ name: 'Asset 1'}], tenant: 'Test Tenant' }
+    });
     expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }], tenant: 'Test Tenant' }]);
   });
 
@@ -47,6 +58,7 @@ describe('creating deals', () => {
     dealManagement.save();
 
     expect(dealManagement.errors).toStrictEqual(["Deals must be tied to at least one asset"]);
+    expect(mocks.httpClient).not.toHaveBeenCalled();
   });
 
   it('is able to save after reporting invalidity', () => {

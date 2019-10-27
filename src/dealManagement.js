@@ -28,11 +28,19 @@ let makeDealManagement = (server) => {
 
       let newDeal = Object.assign({}, this.dealForm) 
       this.deals.push(newDeal);
-      server.save(newDeal);
+      let request = {
+        path: '/deals',
+        method: "POST",
+        params: newDeal,
+      };
+      server.perform(request);
     },
     async searchForAssets(searchText) {
-      let results = await server.viewAssets(searchText);
-
+      let request = {
+        path: `/assets?search=${searchText}`,
+        method: "GET"
+      }
+      let results = await server.perform(request);
       return (draft) => draft.assetSearchResults = results;
     },
 
@@ -43,19 +51,21 @@ let makeDealManagement = (server) => {
 
       return null;
     },
-    viewDeals() {
-      this.deals = server.viewDeals()
+    async viewDeals() {
+      console.log("Viewing deals");
+      let deals = await server.perform({ path: '/deals', method: "GET" });
+      console.log("received deals from server");
+      console.log(deals);
+      return (draft) => { draft.deals = deals }
     }
   };
 };
 
-let makeServer = (dealContext, save, viewAssets) => {
+let makeServer = (httpClient) => {
   return {
-    viewDeals() {
-      return dealContext;
-    },
-    save,
-    viewAssets
+    async perform(request) {
+      return httpClient(request);
+    }
   };
 };
 
