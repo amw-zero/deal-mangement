@@ -52,10 +52,7 @@ let makeDealManagement = (server) => {
       return null;
     },
     async viewDeals() {
-      console.log("Viewing deals");
       let deals = await server.perform({ path: '/deals', method: "GET" });
-      console.log("received deals from server");
-      console.log(deals);
       return (draft) => { draft.deals = deals }
     }
   };

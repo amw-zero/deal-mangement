@@ -27,8 +27,6 @@ let searchedAssets = [
 ];
 
 function stubHttpClient(request) {
-  console.log("Making http request")
-  console.log(request)
   if (request.path === '/deals' && request.method === 'GET') {
     return deals;
   } else if (request.path.includes('/assets')) {
