@@ -112,7 +112,7 @@ function DealForm(props) {
     }
 
     return <Form layout="vertical">
-      <h3>Selected assets</h3>
+      <h4>Selected</h4>
       <Form.Item>
         <List
           itemLayout="vertical"
@@ -270,7 +270,7 @@ function App() {
 
   useEffect(() => {
     updateState(draftState => draftState.dealManagement.viewDeals());
-  }, []);  
+  }, []);
 
   function showNewDealForm() {
     updateState(draftState => { 
