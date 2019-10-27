@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
-import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Statistic, Steps } from 'antd';
+import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Steps } from 'antd';
 import produce from 'immer';
 
 import { makeDealManagement, makeServer } from './dealManagement.js';
@@ -87,10 +87,10 @@ function DealForm(props) {
     {
       title: 'Enter details',
       content: <Form layout="vertical">
-        <Form.Item>
+        <Form.Item label="Size">
           <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
         </Form.Item>        
-        <Form.Item>
+        <Form.Item label="Tenant">
           <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
         </Form.Item>
       </Form>
@@ -122,8 +122,7 @@ function DealForm(props) {
     }
 
     return <Form layout="vertical">
-      <h4>Selected</h4>
-      <Form.Item>
+      <Form.Item label="Selected">
         <List
           itemLayout="vertical"
           bordered
@@ -137,7 +136,7 @@ function DealForm(props) {
         <Search placeholder="Search for assets" onSearch={searchForAssets} />
       </Form.Item>
     
-      <Form.Item>
+      <Form.Item label="Your assets">
         <List
           itemLayout="vertical"
           bordered
@@ -155,8 +154,7 @@ function DealForm(props) {
   function ReviewStep() {
     return <div>
       <Form layout="vertical">
-        <h3>Selected assets</h3>
-        <Form.Item>
+        <Form.Item label="Selected assets">
           <List
             itemLayout="vertical"
             bordered
@@ -167,12 +165,12 @@ function DealForm(props) {
           />
         </Form.Item>
 
-        <h3>Details</h3>
-        <Form.Item>
-          <Statistic title="Size" value={state.dealManagement.dealForm.size} />
-        </Form.Item>
-        <Form.Item>
-          <Statistic title="Tenant" value={state.dealManagement.dealForm.tenant} />
+        <h4>Details</h4>
+        <Form.Item label="Size">
+          <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
+        </Form.Item>        
+        <Form.Item label="Tenant">
+          <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
         </Form.Item>
       </Form>
     </div>
@@ -202,11 +200,12 @@ function DealForm(props) {
   }
 
   function saveDeal() {
-    setCurrentStep(0);
     updateState(draftState => { 
       draftState.dealManagement.save();
       draftState.isDealModalVisible = draftState.dealManagement.errors.length !== 0;
     });
+    setCurrentStep(0);    
+    setSelectedAssets([]);
   }
 
   function hideForm() {
