@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
-import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Select } from 'antd';
+import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Select, Steps } from 'antd';
 import produce from 'immer';
 
 import { makeDealManagement, makeServer } from './dealManagement.js';
 
 const { Option } = Select;
 const { Header, Content, Footer } = Layout;
-const { Search } = Input
+const { Search } = Input;
+const { Step } = Steps;
 
 let deals = [
  { tenant: 'JCPenny', size: 100 },
@@ -26,7 +27,6 @@ let server = makeServer(deals, () => { })
 let dealManagement = makeDealManagement(server);
 
 const StateContext = createContext();
-
 
 function Deal(props) {
   function assetString(assets) {
@@ -63,6 +63,70 @@ function DealList(props) {
 
 function DealForm(props) {
   let [state, updateState] = useContext(StateContext);
+  let [currentStep, setCurrentStep] = useState(0);
+  let [selectedAssets, setSelectedAssets] = useState([]);
+
+  const steps = [
+    {
+      title: 'Select assets',
+      content: <SelectAssetsStep />
+    },
+    {
+      title: 'Enter details',
+      content: <Form layout="vertical">
+        <Form.Item>
+          <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
+        </Form.Item>        
+        <Form.Item>
+          <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
+        </Form.Item>
+      </Form>
+    },
+    {
+      title: 'Review',
+      content: 'Last-content',
+    },
+  ];
+
+  function SelectAssetsStep() {
+    return <Form layout="vertical">
+      <h3>Selected assets</h3>
+      <Form.Item>
+        <List
+          itemLayout="vertical"
+          bordered
+          dataSource={selectedAssets}
+          renderItem={ asset => (
+            <List.Item>{asset.name}</List.Item>
+          )}
+        />
+      </Form.Item>
+      <Form.Item hasFeedback validateStatus={assetSearchValidateStatus()}>
+        <Search placeholder="Search for assets" onChange={searchForAssets} />
+      </Form.Item>
+    
+      <Form.Item>
+        <List
+          itemLayout="vertical"
+          bordered
+          dataSource={assets}
+          renderItem={ asset => (
+            <List.Item style={{ cursor: 'pointer '}} onClick={() => handleAsset(asset)}>{asset.name}</List.Item>
+          )}
+        />
+      </Form.Item>
+
+      { state.dealManagement.errors.length > 0 ? <Alert message={state.dealManagement.errors[0]} type="error" /> : null }
+    </Form>
+  }
+
+  function next() {
+    setCurrentStep(currentStep + 1);
+  }
+
+  function prev() {
+    setCurrentStep(currentStep - 1);
+  }
 
   function handleSize(event) {
     let size = event.target.value;
@@ -70,7 +134,8 @@ function DealForm(props) {
   }
 
   function handleAsset(asset) {
-    updateState(draftState => { draftState.dealManagement.dealForm.assets.push({ name: asset }) });
+    setSelectedAssets([asset, ...selectedAssets]);
+    updateState(draftState => { draftState.dealManagement.dealForm.assets.push(asset) });
   }
 
   function handleTenant(event) {
@@ -79,6 +144,7 @@ function DealForm(props) {
   }
 
   function saveDeal() {
+    setCurrentStep(0);
     updateState(draftState => { 
       draftState.dealManagement.save();
       draftState.isDealModalVisible = draftState.dealManagement.errors.length !== 0;
@@ -89,7 +155,8 @@ function DealForm(props) {
     updateState(draftState => { 
       draftState.dealManagement.makeNewDeal();
       draftState.isDealModalVisible = false;
-    });    
+    });
+    setCurrentStep(0);
   }
 
   function searchForAssets(searchText) {
@@ -107,38 +174,36 @@ function DealForm(props) {
     return assets[0] ? assets[0].name : undefined;
   }
 
+  function nextButtonEnabled() {
+    if (currentStep === 0) {
+      return selectedAsset();
+    }
+
+    return true;
+  }
+
+  function Footer() {
+    return <div>
+      { currentStep > 0 && <Button onClick={prev}>Previous</Button> }
+      { currentStep < steps.length - 1 && <Button type="primary" disabled={!nextButtonEnabled()} onClick={next} >Next</Button> }
+      { currentStep === steps.length - 1 && <Button type="primary" onClick={saveDeal}>Save</Button> }
+    </div>
+  }
+
   return <Modal 
-    visible={state.isDealModalVisible} 
-    onCancel={hideForm} 
-    okText={"Save"} 
-    onOk={saveDeal}>
-
-      <Form layout="vertical">
-
-        <Form.Item label="Add deal" />
-
-        <Form.Item>
-          <Input placeholder="Size" value={state.dealManagement.dealForm.size} onChange={handleSize}/>
-        </Form.Item>
-
-        <Form.Item>
-          <Input placeholder="Tenant" value={state.dealManagement.dealForm.tenant} onChange={handleTenant}/>              
-        </Form.Item>
-
-        <Form.Item hasFeedback validateStatus={assetSearchValidateStatus()}>
-          <Search placeholder="Search for assets" onChange={searchForAssets} />
-        </Form.Item>
-      
-        <Form.Item required={true}>
-          <Select placeholder="Select Asset" style={{ width: 200 }} value={selectedAsset()} onChange={handleAsset}>
-            <Option value={assets[0].name}>{assets[0].name}</Option>
-            <Option value={assets[1].name}>{assets[1].name}</Option>        
-          </Select>
-        </Form.Item>
-
-        { state.dealManagement.errors.length > 0 ? <Alert message={state.dealManagement.errors[0]} type="error" /> : null }
-    </Form>
-
+    visible={state.isDealModalVisible}
+    onCancel={hideForm}
+    closable={false}
+    okText={"Next"}
+    footer={Footer()}>
+      <Steps current={currentStep}>
+        {steps.map(item => (
+          <Step key={item.title} title={item.title} />
+        ))}
+      </Steps>
+      <div style={{ marginTop: '14px' }}>
+        {steps[currentStep].content}
+      </div>
   </Modal>;
 }
 
