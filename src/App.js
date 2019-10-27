@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
-import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Select, Steps } from 'antd';
+import { Alert, Button, Form, Input, Layout, List, Menu, Modal, Statistic, Steps } from 'antd';
 import produce from 'immer';
 
 import { makeDealManagement, makeServer } from './dealManagement.js';
 
-const { Option } = Select;
 const { Header, Content, Footer } = Layout;
 const { Search } = Input;
 const { Step } = Steps;
@@ -84,7 +83,7 @@ function DealForm(props) {
     },
     {
       title: 'Review',
-      content: 'Last-content',
+      content: <ReviewStep />,
     },
   ];
 
@@ -118,6 +117,32 @@ function DealForm(props) {
 
       { state.dealManagement.errors.length > 0 ? <Alert message={state.dealManagement.errors[0]} type="error" /> : null }
     </Form>
+  }
+
+  function ReviewStep() {
+    return <div>
+      <Form layout="vertical">
+        <h3>Selected assets</h3>
+        <Form.Item>
+          <List
+            itemLayout="vertical"
+            bordered
+            dataSource={selectedAssets}
+            renderItem={ asset => (
+              <List.Item>{asset.name}</List.Item>
+            )}
+          />
+        </Form.Item>
+
+        <h3>Details</h3>
+        <Form.Item>
+          <Statistic title="Size" value={state.dealManagement.dealForm.size} />
+        </Form.Item>
+        <Form.Item>
+          <Statistic title="Tenant" value={state.dealManagement.dealForm.tenant} />
+        </Form.Item>
+      </Form>
+    </div>
   }
 
   function next() {
