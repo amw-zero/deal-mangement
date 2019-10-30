@@ -32,8 +32,10 @@ async function stubHttpClient(request) {
 
     let response = await fetch('/deals.json')
     return await response.json();
-  } else if (request.path.includes('/assets')) {
+  } else if (request.path.includes('/assets?search')) {
     return searchedAssets;
+  } else if (request.path.includes('/assets')) {
+    return assets;
   }
 
   return [];  
@@ -106,15 +108,7 @@ function DealForm(props) {
           onDone(draftState.dealManagement);
         });
       }, 1000);
-    }
-
-    function assetsDataSource() {
-      if (state.dealManagement.assetSearchResults.length > 0) {
-        return state.dealManagement.assetSearchResults;
-      }
-
-      return assets;
-    }
+    }    
 
     return <Form layout="vertical">
       <Form.Item label="Selected">
@@ -135,7 +129,7 @@ function DealForm(props) {
         <List
           itemLayout="vertical"
           bordered
-          dataSource={assetsDataSource()}
+          dataSource={state.dealManagement.selectableAssets}
           renderItem={ asset => (
             <List.Item style={{ cursor: 'pointer '}} onClick={() => handleAsset(asset)}>{asset.name}</List.Item>
           )}
@@ -274,8 +268,12 @@ function App() {
 
   useEffect(() => {
     let perform = async () => {
-      let onDone = await state.dealManagement.viewDeals();
-      updateState(draft => onDone(draft.dealManagement));    
+      let onViewDealsDone = await state.dealManagement.viewDeals();
+      let onViewAssetsDone = await state.dealManagement.viewAssets();
+      updateState(draft => {
+        onViewDealsDone(draft.dealManagement);
+        onViewAssetsDone(draft.dealManagement);
+      });    
     };
     perform();
   }, []);

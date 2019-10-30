@@ -28,7 +28,7 @@ let makeDealManagement = (server) => {
     deals: [],
     errors: [],
     tenant: null,
-    assetSearchResults: [],
+    selectableAssets: [],
     server,
     resetDealForm() {
       this.dealForm = new DealForm();
@@ -58,9 +58,9 @@ let makeDealManagement = (server) => {
       let request = {
         path: `/assets?search=${searchText}`,
         method: "GET"
-      }
+      };
       let results = await server.perform(request);
-      return (draft) => draft.assetSearchResults = results;
+      return (draft) => draft.selectableAssets = results;
     },
 
     validate() {
@@ -81,6 +81,10 @@ let makeDealManagement = (server) => {
 
       let deals = transformResponse(dealResponse)
       return (draft) => { draft.deals = deals }
+    },
+    async viewAssets() {
+      let assets = await server.perform({ path: '/assets.json', method: "GET" });
+      return (draft) => { draft.selectableAssets = assets }; 
     }
   };
 };

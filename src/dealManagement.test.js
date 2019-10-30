@@ -5,14 +5,16 @@ import { makeDealManagement, makeServer } from './dealManagement.js';
 import { dealsResponse, dealsErrorResponse } from './responses.js';
 
 function makeTestDealManagement(overrideOpts = {}) {
-  let defaultOpts = { dealContext: [], assetSearchResults: [], stubRequests: {} };
+  let defaultOpts = { dealContext: [], assetContext: [], assetSearchResults: [], stubRequests: {} };
   let opts = Object.assign(defaultOpts, overrideOpts);
 
   let httpClient = jest.fn(request => {
     if (request.path === '/deals.json' && request.method === 'GET') {
       return opts.dealContext;
-    } else if (request.path.includes('/assets')) {
+    } else if (request.path.includes('/assets?search')) {
       return opts.assetSearchResults;
+    } else if (request.path.includes('/assets')) {
+      return opts.assetContext;
     }
 
     return [];
@@ -100,7 +102,7 @@ describe('creating deals', () => {
 
   it('supports searching for assets', async () => {
     let asset1 = { name: 'Asset 1'};
-    let { dealManagement, mocks } = makeTestDealManagement({ assetSearchResults: [asset1] });
+    let { dealManagement } = makeTestDealManagement({ assetSearchResults: [asset1] });
     let assets = [
       asset1,
       { name: 'Asset 2' },          
@@ -112,7 +114,17 @@ describe('creating deals', () => {
     let onDone = await dealManagement.searchForAssets('Asset 1');
     onDone(dealManagement);
 
-    expect(dealManagement.assetSearchResults).toStrictEqual([{ name: 'Asset 1' }]);
+    expect(dealManagement.selectableAssets).toStrictEqual([{ name: 'Asset 1' }]);
+  });
+
+  it('can display all assets', async () => {
+    let asset1 = { name: 'Asset 1'};    
+    let { dealManagement } = makeTestDealManagement({ assetContext: [asset1] });
+
+    let onDone = await dealManagement.viewAssets();
+    onDone(dealManagement);
+
+    expect(dealManagement.selectableAssets).toStrictEqual([{ name: 'Asset 1' }]);
   });
 });
 
