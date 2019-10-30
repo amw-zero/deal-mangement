@@ -10,16 +10,16 @@ const { Header, Content, Footer } = Layout;
 const { Search } = Input;
 const { Step } = Steps;
 
+let assets = [
+  { name: 'Asset 1' },
+  { name: 'Asset 2' }
+];
+
 let deals = [
   { tenant: 'JCPenny', size: 100 },
   { tenant: 'Starbucks', size: 200 },
   { tenant: 'H&M', size: 300 },
-  { tenant: 'Blue Bottle', size: 400 }
-];
-
-let assets = [
-  { name: 'Asset 1' },
-  { name: 'Asset 2' }
+  { tenant: 'Blue Bottle', size: 400, assets: assets }
 ];
 
 let searchedAssets = [
@@ -28,6 +28,8 @@ let searchedAssets = [
 
 async function stubHttpClient(request) {
   if (request.path === '/deals.json' && request.method === 'GET') {
+    return deals;
+
     let response = await fetch('/deals.json')
     return await response.json();
   } else if (request.path.includes('/assets')) {
@@ -42,18 +44,10 @@ let dealManagement = makeDealManagement(server);
 
 const StateContext = createContext();
 
-function Deal(props) {
-  function assetString(assets) {
-    if (!assets) {
-      return "none";
-    }
-    return assets.map(a => a.name).join(", ")
-  }
-
+function Deal(props) {  
   return <List.Item>
     <List.Item.Meta title={props.deal.tenant} />
-
-    Size: {props.deal.size} | Assets: {assetString(props.deal.assets)}
+    {props.deal.descriptionLabel}
   </List.Item>;
 }
 

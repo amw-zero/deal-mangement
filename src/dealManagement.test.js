@@ -33,11 +33,8 @@ describe('viewing deals', () => {
     onDone(dealManagement);
 
     expect(dealManagement.deals).toStrictEqual([{
-      size: 5,
       tenant: 'Test Tenant',
-      assets: [
-        { name: 'Test Asset' }
-      ]
+      descriptionLabel: 'Size: 5 | Assets: Test Asset'
     }]);
   });
 
@@ -66,7 +63,12 @@ describe('creating deals', () => {
       method: 'POST',
       params:{ size: 5, assets: [{ name: 'Asset 1'}], tenant: 'Test Tenant' }
     });
-    expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }], tenant: 'Test Tenant' }]);
+    expect(dealManagement.deals).toStrictEqual([
+      { 
+        tenant: 'Test Tenant',
+        descriptionLabel: 'Size: 5 | Assets: Asset 1'
+      }
+    ]);
   });
 
   it('communicates invalidity when the deal has no asset' , () => {
@@ -91,7 +93,9 @@ describe('creating deals', () => {
     dealManagement.save();
 
     expect(dealManagement.errors).toStrictEqual([]);
-    expect(dealManagement.deals).toStrictEqual([{ size: 5, assets: [{ name: 'Asset 1' }]}])
+    expect(dealManagement.deals).toStrictEqual([
+      { tenant: undefined, descriptionLabel: 'Size: 5 | Assets: Asset 1' }
+    ]);
   });
 
   it('supports searching for assets', async () => {

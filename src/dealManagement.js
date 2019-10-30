@@ -4,6 +4,24 @@ function DealForm() {
   };
 }
 
+function assetString(assets) {
+  if (!assets) {
+    return "none";
+  }
+  return assets.map(a => a.name).join(", ")
+}
+
+function transformDeal(deal) {
+  return {
+    tenant: deal.tenant,
+    descriptionLabel: `Size: ${deal.size} | Assets: ${assetString(deal.assets)}`
+  };
+}
+
+function transformResponse(dealResponse) {
+  return dealResponse.map(transformDeal);
+}
+
 let makeDealManagement = (server) => {
   return {
     dealForm: new DealForm(),
@@ -26,8 +44,9 @@ let makeDealManagement = (server) => {
         this.errors = [];
       }
 
-      let newDeal = Object.assign({}, this.dealForm) 
-      this.deals.push(newDeal);
+      let newDeal = Object.assign({}, this.dealForm);
+
+      this.deals.push(transformDeal(newDeal));
       let request = {
         path: '/deals',
         method: "POST",
@@ -52,13 +71,15 @@ let makeDealManagement = (server) => {
       return null;
     },
     async viewDeals() {
-      let deals = await server.perform({ path: '/deals.json', method: "GET" });
-      if (deals.error) {
+      let dealResponse = await server.perform({ path: '/deals.json', method: "GET" });
+      if (dealResponse.error) {
         return (draft) => { 
-          draft.deals = [];
-          draft.errors = [deals.error];
+          draft.dealResponse = [];
+          draft.errors = [dealResponse.error];
         }
       }
+
+      let deals = transformResponse(dealResponse)
       return (draft) => { draft.deals = deals }
     }
   };
