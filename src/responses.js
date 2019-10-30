@@ -2,7 +2,7 @@ let asset = {
   name: 'Test Asset'
 };
 
-let dealResponse = (size = 5, tenant = 'Test Tenant', assets = [asset]) => {
+let dealsResponse = (size = 5, tenant = 'Test Tenant', assets = [asset]) => {
   return [
     {
       size,
@@ -12,4 +12,11 @@ let dealResponse = (size = 5, tenant = 'Test Tenant', assets = [asset]) => {
   ];
 };
 
-export { dealResponse };
+let dealsErrorResponse = () => {
+  return  {
+    status: 500,
+    error: 'Internal Server Error'
+  }
+};
+
+export { dealsResponse, dealsErrorResponse };

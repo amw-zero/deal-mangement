@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { makeDealManagement, makeServer } from './dealManagement.js';
-import { dealResponse } from './responses.js';
+import { dealsResponse, dealsErrorResponse } from './responses.js';
 
 function makeTestDealManagement(overrideOpts = {}) {
   let defaultOpts = { dealContext: [], assetSearchResults: [], stubRequests: {} };
@@ -27,7 +27,7 @@ function makeTestDealManagement(overrideOpts = {}) {
 
 describe('viewing deals', () => {
   it('is able to retrieve deal data', async () => {
-    let { dealManagement } = makeTestDealManagement({ dealContext: dealResponse() });
+    let { dealManagement } = makeTestDealManagement({ dealContext: dealsResponse() });
 
     let onDone = await dealManagement.viewDeals();
     onDone(dealManagement);
@@ -39,6 +39,16 @@ describe('viewing deals', () => {
         { name: 'Test Asset' }
       ]
     }]);
+  });
+
+  it('displays an error when deal data cannot be retrieved', async() => {
+    let { dealManagement } = makeTestDealManagement({ dealContext: dealsErrorResponse() });
+
+    let onDone = await dealManagement.viewDeals();
+    onDone(dealManagement);
+
+    expect(dealManagement.deals).toStrictEqual([]);
+    expect(dealManagement.errors).toStrictEqual(['Internal Server Error'])
   });
 });
 
